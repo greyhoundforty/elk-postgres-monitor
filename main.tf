@@ -6,24 +6,6 @@ resource "random_id" "kibana_password" {
   byte_length = 16
 }
 
-data "ibm_compute_ssh_key" "deploymentKey" {
-  label = "ryan_tycho"
-}
-
-data "ibm_resource_group" "rs_group" {
-  name = "CDE"
-}
-
-// data "template_file" "log-psg" {
-//   template = "${file("${path.cwd}/Templates/postgresql.conf.tpl")}"
-
-//   vars {
-//     psg_password = "${random_id.postgres_password.hex}"
-//     port         = "${ibm_database.elk_postgres.connectionstrings.0.hosts.0.port}"
-//     host         = "${ibm_database.elk_postgres.connectionstrings.0.hosts.0.host}"
-//   }
-// }
-
 resource "ibm_compute_vm_instance" "elk_node" {
   hostname             = "elk"
   domain               = "${var.domain}"
@@ -74,14 +56,6 @@ EOF
 
   filename = "${path.module}/inventory.env"
 }
-
-// resource "local_file" "rendered" {
-//   content = <<EOF
-// ${data.template_file.log-psg.rendered}
-// EOF
-
-//   filename = "./postgresql.conf"
-// }
 
 resource "local_file" "icd_connections" {
   content = <<EOF

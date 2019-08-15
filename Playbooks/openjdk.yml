@@ -1,7 +1,0 @@
----
-- hosts: elk
-  become: true
-  vars:
-    _openjdk_jdk_version: 8
-  roles:
-    - role: infOpen.openjdk-jdk

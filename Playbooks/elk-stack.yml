@@ -1,0 +1,23 @@
+---
+- hosts: elk
+  become: true
+  vars:
+    _openjdk_jdk_version: 8
+    elasticsearch_network_host: localhost
+    elasticsearch_version: '6.x'
+    elasticsearch_service_state: started
+    elasticsearch_service_enabled: true
+    kibana_version: "6.x"
+    kibana_service_state: started
+    kibana_service_enabled: true
+    kibana_elasticsearch_url: "http://localhost:9200"
+    kibana_elasticsearch_username: "kibanaadmin"
+    kibana_elasticsearch_password: "JaduB4aw21@#"
+    logstash_elasticsearch_hosts:
+      - http://localhost:9200
+    logstash_enabled_on_boot: true
+  roles:
+    - role: infOpen.openjdk-jdk
+    - role: geerlingguy.elasticsearch
+    - role: geerlingguy.kibana
+    - role: geerlingguy.logstash
