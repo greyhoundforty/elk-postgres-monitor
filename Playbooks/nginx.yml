@@ -1,0 +1,11 @@
+---
+- hosts: elk
+  become: true
+  roles:
+    - role: nginxinc.nginx
+  vars:
+    nginx_enable: true
+    nginx_unit_enable: true
+    nginx_unit_modules:
+      - unit-php
+      - unit-perl
