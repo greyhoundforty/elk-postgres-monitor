@@ -7,3 +7,8 @@
 
 # .tfvars files
 *.tfvars
+backend.tf
+*.tfplan
+*.json
+*.env
+*.users

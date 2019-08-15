@@ -58,7 +58,7 @@ resource "ibm_database" "elk_postgres" {
 }
 
 resource "null_resource" "httpd-password" {
-  provisioner  "local-exec" {
+  provisioner "local-exec" {
     command = "openssl passwd -apr1 ${random_id.kibana_password.hex} | tee -a htpasswd.users"
   }
 }
@@ -66,7 +66,7 @@ resource "null_resource" "httpd-password" {
 resource "local_file" "output" {
   content = <<EOF
 [elk]
-elk ansible_host=${ibm_compute_vm_instance.elk_node.ipv4_address}" ansible_ssh_user=ryan
+elk ansible_host=${ibm_compute_vm_instance.elk_node.ipv4_address} ansible_ssh_user=ryan
 
 [elk:vars]
 host_key_checking = False
@@ -74,7 +74,6 @@ EOF
 
   filename = "${path.module}/inventory.env"
 }
-
 
 // resource "local_file" "rendered" {
 //   content = <<EOF
@@ -92,7 +91,6 @@ EOF
 
   filename = "${path.module}/connection_strings.json"
 }
-
 
 output "ICD Host" {
   value = "${jsonencode(ibm_database.elk_postgres.connectionstrings.0.hosts)}"
