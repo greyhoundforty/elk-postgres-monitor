@@ -1,3 +1,11 @@
+resource "random_id" "postgres_password" {
+  byte_length = 16
+}
+
+resource "random_id" "kibana_password" {
+  byte_length = 16
+}
+
 data "ibm_compute_ssh_key" "deploymentKey" {
   label = "ryan_tycho"
 }
@@ -5,6 +13,16 @@ data "ibm_compute_ssh_key" "deploymentKey" {
 data "ibm_resource_group" "rs_group" {
   name = "CDE"
 }
+
+// data "template_file" "log-psg" {
+//   template = "${file("${path.cwd}/Templates/postgresql.conf.tpl")}"
+
+//   vars {
+//     psg_password = "${random_id.postgres_password.hex}"
+//     port         = "${ibm_database.elk_postgres.connectionstrings.0.hosts.0.port}"
+//     host         = "${ibm_database.elk_postgres.connectionstrings.0.hosts.0.host}"
+//   }
+// }
 
 resource "ibm_compute_vm_instance" "elk_node" {
   hostname             = "elk"
@@ -36,13 +54,46 @@ resource "ibm_database" "elk_postgres" {
   service           = "databases-for-postgresql"
   resource_group_id = "${data.ibm_resource_group.rs_group.id}"
   tags              = ["ryantiffany", "region:${var.location["south"]}", "project:elk-icd"]
+  adminpassword     = "${random_id.postgres_password.hex}"
 }
 
-resource "ibm_service_key" "elk_postgress_creds" {
-  name                  = "elk-postgres-rt-creds"
-  service_instance_guid = "${ibm_database.elk_postgres.id}"
+resource "null_resource" "httpd-password" {
+  provisioner  "local-exec" {
+    command = "openssl passwd -apr1 ${random_id.kibana_password.hex} | tee -a htpasswd.users"
+  }
 }
 
-output "ICD Etcd database connection string" {
-  value = "http://${"${ibm_database.elk_postgres.connectionstrings.0.composed}"}"
+resource "local_file" "output" {
+  content = <<EOF
+[elk]
+elk ansible_host=${ibm_compute_vm_instance.elk_node.ipv4_address}" ansible_ssh_user=ryan
+
+[elk:vars]
+host_key_checking = False
+EOF
+
+  filename = "${path.module}/inventory.env"
+}
+
+
+// resource "local_file" "rendered" {
+//   content = <<EOF
+// ${data.template_file.log-psg.rendered}
+// EOF
+
+//   filename = "./postgresql.conf"
+// }
+
+resource "local_file" "icd_connections" {
+  content = <<EOF
+${jsonencode(ibm_database.elk_postgres.connectionstrings.0.hosts)}
+
+EOF
+
+  filename = "${path.module}/connection_strings.json"
+}
+
+
+output "ICD Host" {
+  value = "${jsonencode(ibm_database.elk_postgres.connectionstrings.0.hosts)}"
 }

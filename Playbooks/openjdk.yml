@@ -1,0 +1,5 @@
+---
+- hosts: elk
+  become: true
+  roles:
+    - role: infOpen.openjdk-jdk
